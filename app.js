@@ -7,33 +7,40 @@ const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 // Referencia al contenedor de libros
 const contenedor = document.getElementById("libros");
 
-// Función para cargar los libros desde Supabase
-async function loadLibros() {
-  const { data: items, error } = await supabase
-    .from('Items')
+// Función para cargar los libros de un usuario específico
+async function loadLibrosUsuario(userId) {
+  const { data: userItems, error } = await supabase
+    .from('user_Items')
     .select(`
       id,
-      titulo,
-      volumen,
-      paginas,
-      Autor ( nombre ),
-      Editorial ( nombre ),
-      Formato ( tipo ),
-      Saga ( nombre, total_libros ),
-      Portadas ( url, es_principal )
-    `);
+      id_item,
+      Items (
+        id,
+        titulo,
+        volumen,
+        paginas,
+        Autor ( nombre ),
+        Editorial ( nombre ),
+        Formato ( tipo ),
+        Saga ( nombre, total_libros ),
+        Portadas ( url, es_principal )
+      )
+    `)
+    .eq('id_user', userId); // 👈 Filtrar por usuario
 
   if (error) {
     console.error("Error al cargar libros:", error);
     return;
   }
 
-  // Limpiar el contenedor
+  // Limpiar contenedor
   const contenedor = document.getElementById("libros");
   contenedor.innerHTML = "";
 
-  // Insertar cada libro en el HTML
-  items.forEach(item => {
+  // Insertar cada libro
+  userItems.forEach(userItem => {
+    const item = userItem.Items;
+
     // Buscar portada principal
     const portada = item.Portadas?.find(p => p.es_principal) || item.Portadas?.[0];
     const imagenUrl = portada ? portada.url : "assets/placeholder.jpg";
@@ -51,3 +58,5 @@ async function loadLibros() {
     contenedor.appendChild(div);
   });
 }
+loadLibrosUsuario("21552d0f-80de-4566-919f-c313e33adc14");
+
