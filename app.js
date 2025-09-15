@@ -11,7 +11,7 @@ const contenedor = document.getElementById("libros");
 loadLibrosUsuario("21552d0f-80de-4566-919f-c313e33adc14");
 
 // Función para cargar los libros de un usuario específico
-async function loadLibrosUsuario(userId) {
+async function loadLibrosUsuario {
   const { data: userItems, error } = await supabase
     .from('user_items')
     .select(`
@@ -30,7 +30,7 @@ async function loadLibrosUsuario(userId) {
         Portadas ( url, es_principal )
       )
     `)
-    .eq('id_user', userId); // 👈 Filtrar por usuario
+    .eq('id_user', loadLibrosUsuario); // 👈 Filtrar por usuario
 
   if (error) {
     console.error("Error al cargar libros:", error);
