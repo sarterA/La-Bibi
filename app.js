@@ -7,6 +7,9 @@ const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 // Referencia al contenedor de libros
 const contenedor = document.getElementById("libros");
 
+//Usuario
+loadLibrosUsuario("21552d0f-80de-4566-919f-c313e33adc14");
+
 // Función para cargar los libros de un usuario específico
 async function loadLibrosUsuario(userId) {
   const { data: userItems, error } = await supabase
@@ -58,5 +61,5 @@ async function loadLibrosUsuario(userId) {
     contenedor.appendChild(div);
   });
 }
-loadLibrosUsuario("21552d0f-80de-4566-919f-c313e33adc14");
+
 
