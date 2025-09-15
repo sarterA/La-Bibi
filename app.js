@@ -13,9 +13,10 @@ loadLibrosUsuario("21552d0f-80de-4566-919f-c313e33adc14");
 // Función para cargar los libros de un usuario específico
 async function loadLibrosUsuario(userId) {
   const { data: userItems, error } = await supabase
-    .from('user_Items')
+    .from('user_items')
     .select(`
       id,
+      id_user,
       id_item,
       Items (
         id,
