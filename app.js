@@ -32,7 +32,7 @@ async function loadLibrosUsuario(userId) {
 
   // Traer los datos de Items y sus relaciones
   const { data: items, error: errorItems } = await supabase
-    .from('items')
+    .from('Items')
     .select(`
       id, titulo,
       Autor ( nombre ),
