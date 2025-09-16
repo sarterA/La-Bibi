@@ -14,7 +14,7 @@ header {
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 1rem;
   padding: 1rem;
 }
@@ -22,13 +22,14 @@ header {
 .libro {
   background: white;
   border-radius: 8px;
-  padding: 0.5rem;
+  padding: 0.8rem;
   text-align: center;
   box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
 
 .libro img {
   max-width: 100%;
-  border-radius: 4px;
+  height: 250px;
+  object-fit: cover;
+  border-radius: 6px;
 }
-

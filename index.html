@@ -1,9 +1,5 @@
 <!DOCTYPE html>
 <html lang="es">
-  
-<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-<script src="app.js"></script>
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,20 +8,22 @@
 </head>
 <body>
   <header>
-    <h1>La Bibi</h1>
+    <h1>📚 Mi Biblioteca Personal</h1>
   </header>
 
   <main>
     <section id="libros" class="grid">
-      <!-- Aquí se insertarán los libros dinámicamente -->
+      <!-- Los libros se insertan dinámicamente desde app.js -->
     </section>
   </main>
 
   <footer>
-    <p>Creado con ❤️ en Netlify + Supabase</p>
+    <p>Creado con ❤️ usando Netlify + Supabase</p>
   </footer>
 
+  <!-- SDK de Supabase -->
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <!-- Tu lógica -->
   <script src="app.js"></script>
 </body>
 </html>
-
