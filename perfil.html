@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mi Perfil</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h1> Mi Perfil</h1>
+    <button id="logout-btn">Cerrar Sesión</button>
+  </header>
+
+  <main>
+    <h2>Gestión de Libros</h2>
+    <button id="add-book-btn"> Insertar libro</button>
+    <button id="delete-book-btn"> Eliminar libro</button>
+
+    <section id="mis-libros" class="grid"></section>
+  </main>
+
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script src="auth.js"></script>
+</body>
+</html>
