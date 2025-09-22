@@ -17,9 +17,17 @@
 
     <div class="acciones">
       <h3>Añadir libro</h3>
-      <input type="number" id="id-libro-add" placeholder="ID del libro (Items)">
-      <button id="add-book-btn">Insertar libro</button>
+      <input type="text" id="buscar-libro" placeholder="Escriba el título del libro">
+      <ul id="sugerencias"></ul>
+      button id="agregar-nuevo-btn">➕ Si no está el libro, agréguelo a la biblioteca</button>
     </div>
+
+    <div id="nuevo-libro-form" style="display:none;">
+      <h3>Nuevo Libro</h3>
+      <input type="text" id="nuevo-titulo" placeholder="Título">
+      <input type="text" id="nuevo-autor" placeholder="Autor (opcional)">
+      <button id="guardar-nuevo-btn">Guardar libro</button>
+   </div>
 
     <div class="acciones">
       <h3>Eliminar libro</h3>

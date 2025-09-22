@@ -100,25 +100,64 @@ async function loadUserBooks(userId) {
   });
 }
 
-// Insertar libro
-const addBtn = document.getElementById("add-book-btn");
-if (addBtn) {
-  addBtn.addEventListener("click", async () => {
-    const idLibro = document.getElementById("id-libro-add").value;
-    if (!idLibro || !currentUser) return;
+// ==================== AGREGAR LIBRO EXISTENTE ====================
+async function agregarLibroUsuario(idItem) {
+  if (!currentUser) return;
 
-    const { error } = await supabase
-      .from("user_items")
-      .insert([{ id_user: currentUser.id, id_item: idLibro }]);
+  const { error } = await supabase
+    .from("user_items")
+    .insert([{ id_user: currentUser.id, id_item: idItem }]);
 
-    if (error) {
-      alert("Error al insertar libro: " + error.message);
-    } else {
-      alert("Libro añadido correctamente.");
-      loadUserBooks(currentUser.id);
-    }
+  if (error) {
+    alert("Error al añadir libro: " + error.message);
+  } else {
+    alert("Libro añadido correctamente.");
+    loadUserBooks(currentUser.id);
+  }
+}
+
+// ==================== NUEVO LIBRO ====================
+const nuevoBtn = document.getElementById("agregar-nuevo-btn");
+const nuevoForm = document.getElementById("nuevo-libro-form");
+if (nuevoBtn) {
+  nuevoBtn.addEventListener("click", () => {
+    nuevoForm.style.display = "block";
   });
 }
+
+const guardarBtn = document.getElementById("guardar-nuevo-btn");
+if (guardarBtn) {
+  guardarBtn.addEventListener("click", async () => {
+    const titulo = document.getElementById("nuevo-titulo").value.trim();
+    const autor = document.getElementById("nuevo-autor").value.trim();
+
+    if (!titulo) {
+      alert("El título es obligatorio.");
+      return;
+    }
+
+    // 1. Insertar en Items
+    const { data: nuevoItem, error } = await supabase
+      .from("Items")
+      .insert([{ titulo }])
+      .select("id")
+      .single();
+
+    if (error) {
+      alert("Error al crear libro: " + error.message);
+      return;
+    }
+
+    // 2. Insertar en user_items del usuario actual
+    await agregarLibroUsuario(nuevoItem.id);
+
+    // Reset
+    document.getElementById("nuevo-titulo").value = "";
+    document.getElementById("nuevo-autor").value = "";
+    nuevoForm.style.display = "none";
+  });
+}
+
 
 // Eliminar libro
 const delBtn = document.getElementById("delete-book-btn");
@@ -141,3 +180,49 @@ if (delBtn) {
     }
   });
 }
+
+// ==================== AUTOCOMPLETAR ====================
+const buscarInput = document.getElementById("buscar-libro");
+const sugerencias = document.getElementById("sugerencias");
+
+if (buscarInput) {
+  buscarInput.addEventListener("input", async () => {
+    const query = buscarInput.value.trim();
+    sugerencias.innerHTML = "";
+
+    if (query.length < 2) return;
+
+// Buscar en Supabase (tabla Items)
+    const { data: items, error } = await supabase
+      .from("Items")
+      .select("id, titulo")
+      .ilike("titulo", `%${query}%`)
+      .limit(5);
+
+if (error) {
+      console.error("Error en búsqueda:", error.message);
+      return;
+    }
+
+    if (items.length === 0) {
+      sugerencias.innerHTML = "<li>No se encontraron libros</li>";
+      return;
+    }
+
+// Mostrar sugerencias
+    items.forEach(item => {
+      const li = document.createElement("li");
+      li.textContent = item.titulo;
+      li.style.cursor = "pointer";
+      li.addEventListener("click", async () => {
+        await agregarLibroUsuario(item.id);
+        buscarInput.value = "";
+        sugerencias.innerHTML = "";
+      });
+      sugerencias.appendChild(li);
+    });
+  });
+}
+
+
+
