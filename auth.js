@@ -214,9 +214,10 @@ if (error) {
       const li = document.createElement("li");
       li.textContent = item.titulo;
       li.style.cursor = "pointer";
-      li.addEventListener("click", async () => {
-        await agregarLibroUsuario(item.id);
-        buscarInput.value = "";
+
+     li.addEventListener("click", () => {
+        buscarInput.value = item.titulo;
+        buscarInput.dataset.id = item.id; // guardamos el ID en el input por si luego queremos usarlo
         sugerencias.innerHTML = "";
       });
       sugerencias.appendChild(li);
