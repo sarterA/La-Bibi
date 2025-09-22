@@ -57,9 +57,9 @@ if (logoutBtn) {
 async function loadUserBooks(userId) {
   const contenedor = document.getElementById("mis-libros");
 
-  // 1. Traer user_Items
+  // 1. Traer user_items
   const { data: userItems, error } = await supabase
-    .from("user_Items")
+    .from("user_items")
     .select("id_item")
     .eq("id_user", userId);
 
@@ -108,7 +108,7 @@ if (addBtn) {
     if (!idLibro || !currentUser) return;
 
     const { error } = await supabase
-      .from("user_Items")
+      .from("user_items")
       .insert([{ id_user: currentUser.id, id_item: idLibro }]);
 
     if (error) {
@@ -128,7 +128,7 @@ if (delBtn) {
     if (!idLibro || !currentUser) return;
 
     const { error } = await supabase
-      .from("user_Items")
+      .from("user_items")
       .delete()
       .eq("id_user", currentUser.id)
       .eq("id_item", idLibro);
