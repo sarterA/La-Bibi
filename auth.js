@@ -224,5 +224,93 @@ if (error) {
   });
 }
 
+async function cargarCategorias() {
+  const { data: categorias, error } = await supabase
+    .from("Categoria")
+    .select("id, tipo");
+
+  if (error) {
+    console.error("Error cargando categorías:", error.message);
+    return;
+  }
+
+//===============CATEGORIAS=========================================
+  const categoriaSelect = document.getElementById("categoria-select");
+  const nuevaCategoriaSelect = document.getElementById("nueva-categoria");
+
+  categorias.forEach(cat => {
+    const opt1 = document.createElement("option");
+    opt1.value = cat.id;
+    opt1.textContent = cat.tipo;
+    categoriaSelect.appendChild(opt1);
+
+    const opt2 = document.createElement("option");
+    opt2.value = cat.id;
+    opt2.textContent = cat.tipo;
+    nuevaCategoriaSelect.appendChild(opt2);
+  });
+}
+// Llamar al cargar perfil
+if (document.getElementById("categoria-select")) {
+  cargarCategorias();
+}
+
+// CATEGORIA SELECCIONADA
+
+async function agregarLibroUsuario(idItem) {
+  if (!currentUser) return;
+
+  const categoriaId = document.getElementById("categoria-select").value;
+
+  const { error } = await supabase
+    .from("user_items")
+    .insert([{
+      id_user: currentUser.id,
+      id_item: idItem,
+      id_categoria: categoriaId
+    }]);
+
+  if (error) {
+    alert("Error al añadir libro: " + error.message);
+  } else {
+    alert("Libro añadido correctamente.");
+    loadUserBooks(currentUser.id);
+  }
+}
+
+//NUEVO LIBRO
+
+if (guardarBtn) {
+  guardarBtn.addEventListener("click", async () => {
+    const titulo = document.getElementById("nuevo-titulo").value.trim();
+    const autor = document.getElementById("nuevo-autor").value.trim();
+    const categoriaId = document.getElementById("nueva-categoria").value;
+
+    if (!titulo) {
+      alert("El título es obligatorio.");
+      return;
+    }
+
+    // 1. Insertar en Items
+    const { data: nuevoItem, error } = await supabase
+      .from("Items")
+      .insert([{ titulo }])
+      .select("id")
+      .single();
+
+    if (error) {
+      alert("Error al crear libro: " + error.message);
+      return;
+    }
+
+    // 2. Insertar en user_items con categoría seleccionada
+    await agregarLibroUsuario(nuevoItem.id, categoriaId);
+
+    // Reset
+    document.getElementById("nuevo-titulo").value = "";
+    document.getElementById("nuevo-autor").value = "";
+    nuevoForm.style.display = "none";
+  });
+}
 
 
