@@ -23,6 +23,8 @@ const precioInput = document.getElementById("precio-input");
 const formNuevo = document.getElementById("form-nuevo");
 const guardarNuevoBtn = document.getElementById("guardar-nuevo-btn");
 const cancelarNuevoBtn = document.getElementById("cancelar-nuevo-btn");
+const puntuacionSelect = document.getElementById("puntuacion-select");
+const labelPuntuacion = document.getElementById("label-puntuacion");
 
 let currentUser = null;
 let selectedItemId = null;
@@ -357,6 +359,7 @@ btnAddSelected.addEventListener('click', async () => {
       id_item: idItem,
       id_categoria: categoriaId,
       Precio: precio // si tu columna existe; si no, quítalo
+      id_puntuacion: puntuacionId
     }]);
 
   if (error) {
@@ -410,6 +413,10 @@ guardarNuevoBtn.addEventListener('click', async () => {
 
   const nuevoId = inserted.id;
 
+const puntuacionId = (labelPuntuacion.style.display !== 'none' && puntuacionSelect.value)
+  ? puntuacionSelect.value
+  : null;
+
   // 2) Insert en user_items con la categoría y precio
   const { error: errUserItem } = await supabase
     .from('user_items')
@@ -418,6 +425,7 @@ guardarNuevoBtn.addEventListener('click', async () => {
       id_item: nuevoId,
       id_categoria: categoriaId,
       Precio: precioNuevo
+      id_puntuacion: puntuacionId
     }]);
 
   if (errUserItem) {
@@ -438,4 +446,43 @@ guardarNuevoBtn.addEventListener('click', async () => {
 cancelarNuevoBtn.addEventListener('click', () => {
   formNuevo.style.display = 'none';
 });
+
+
+//=================== Cargar puntuaciones==============================
+async function cargarPuntuaciones() {
+  const { data: puntuaciones, error } = await supabase
+    .from('Puntuacion')
+    .select('id, nota');
+
+  if (error) {
+    console.error('Error cargando puntuaciones:', error);
+    return;
+  }
+
+  puntuacionSelect.innerHTML = '<option value="">-- Seleccione --</option>';
+  puntuaciones.forEach(p => {
+    const o = document.createElement('option');
+    o.value = p.id;
+    o.textContent = p.nota;
+    puntuacionSelect.appendChild(o);
+  });
+}
+
+// Mostrar u ocultar puntuación según categoría
+categoriaSelect.addEventListener('change', () => {
+  const selectedText = categoriaSelect.options[categoriaSelect.selectedIndex]?.text;
+  if (selectedText && selectedText.toLowerCase() === "leído") {
+    labelPuntuacion.style.display = 'inline';
+    puntuacionSelect.style.display = 'inline';
+  } else {
+    labelPuntuacion.style.display = 'none';
+    puntuacionSelect.style.display = 'none';
+    puntuacionSelect.value = ""; // limpiar selección
+  }
+});
+
+// Llamamos al cargar la página
+if (document.body.contains(puntuacionSelect)) {
+  cargarPuntuaciones();
+}
 
