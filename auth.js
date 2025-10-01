@@ -3,7 +3,29 @@ const SUPABASE_URL = "https://buuaufbcuxammcotgiqc.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ1dWF1ZmJjdXhhbW1jb3RnaXFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTEwMzQ3OTksImV4cCI6MjA2NjYxMDc5OX0.BXp3WodQ0fBEWTfG6Jv0OjJcgRJFib9OkoL55rrBdA8";
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+// ---- Helpers ----
+function debounce(fn, delay=300){
+  let t;
+  return (...args) => {
+    clearTimeout(t);
+    t = setTimeout(()=> fn(...args), delay);
+  }
+}
+
+// Variables DOM
+const buscarInput = document.getElementById("buscar-libro");
+const sugerencias = document.getElementById("sugerencias");
+const btnAddSelected = document.getElementById("btn-add-selected");
+const btnShowNew = document.getElementById("btn-show-new");
+const categoriaSelect = document.getElementById("categoria-select");
+const nuevaCategoriaSelect = document.getElementById("nueva-categoria");
+const precioInput = document.getElementById("precio-input");
+const formNuevo = document.getElementById("form-nuevo");
+const guardarNuevoBtn = document.getElementById("guardar-nuevo-btn");
+const cancelarNuevoBtn = document.getElementById("cancelar-nuevo-btn");
+
 let currentUser = null;
+let selectedItemId = null;
 
 //==================== LOGIN ====================
 const loginForm = document.getElementById("login-form");
@@ -225,93 +247,197 @@ if (error) {
   });
 }
 
-async function cargarCategorias() {
+//===============CATEGORIAS=========================================
+
+async function cargarCategorias(){
   const { data: categorias, error } = await supabase
-    .from("Categoria")
-    .select("id, tipo");
+    .from('Categoria')   // usa el nombre exacto de tu tabla
+    .select('id, tipo');
 
   if (error) {
-    console.error("Error cargando categorías:", error.message);
+    console.error('Error cargando categorías:', error);
     return;
   }
 
-//===============CATEGORIAS=========================================
-  const categoriaSelect = document.getElementById("categoria-select");
-  const nuevaCategoriaSelect = document.getElementById("nueva-categoria");
+  categoriaSelect.innerHTML = '<option value="">-- Seleccione --</option>';
+  nuevaCategoriaSelect.innerHTML = '<option value="">-- Seleccione --</option>';
 
-  categorias.forEach(cat => {
-    const opt1 = document.createElement("option");
-    opt1.value = cat.id;
-    opt1.textContent = cat.tipo;
-    categoriaSelect.appendChild(opt1);
+categorias.forEach(c => {
+    const o = document.createElement('option');
+    o.value = c.id;
+    o.textContent = c.tipo;
+    categoriaSelect.appendChild(o);
 
-    const opt2 = document.createElement("option");
-    opt2.value = cat.id;
-    opt2.textContent = cat.tipo;
-    nuevaCategoriaSelect.appendChild(opt2);
+    const o2 = o.cloneNode(true);
+    nuevaCategoriaSelect.appendChild(o2);
   });
 }
+
+
 // Llamar al cargar perfil
-if (document.getElementById("categoria-select")) {
+if (document.body.contains(buscarInput)) {
   cargarCategorias();
 }
 
-// CATEGORIA SELECCIONADA
+// ---- Búsqueda / Autocomplete (Parte 1 y 2) ----
+const buscarYMostrar = debounce(async () => {
+  const q = buscarInput.value.trim();
+  selectedItemId = null;
+  buscarInput.removeAttribute('data-id');
+  btnAddSelected.disabled = true;
+  sugerencias.innerHTML = '';
 
-async function agregarLibroUsuario(idItem) {
-  if (!currentUser) return;
-
-  const categoriaId = document.getElementById("categoria-select").value;
-
-  const { error } = await supabase
-    .from("user_items")
-    .insert([{
-      id_user: currentUser.id,
-      id_item: idItem,
-      id_categoria: categoriaId
-    }]);
-
-  if (error) {
-    alert("Error al añadir libro: " + error.message);
-  } else {
-    alert("Libro añadido correctamente.");
-    loadUserBooks(currentUser.id);
+  if (q.length < 2) {
+    btnShowNew.style.display = 'none';
+    return;
   }
-}
 
-//NUEVO LIBRO
+const { data: items, error } = await supabase
+    .from('Items')   // respeta mayúsculas si tu tabla las tiene
+    .select('id, titulo')
+    .ilike('titulo', `%${q}%`)
+    .limit(8);
 
-if (guardarBtn) {
-  guardarBtn.addEventListener("click", async () => {
-    const titulo = document.getElementById("nuevo-titulo").value.trim();
-    const autor = document.getElementById("nuevo-autor").value.trim();
-    const categoriaId = document.getElementById("nueva-categoria").value;
+if (error) {
+    console.error('Error búsqueda Items:', error);
+    return;
+  }
 
-    if (!titulo) {
-      alert("El título es obligatorio.");
-      return;
-    }
+if (!items || items.length === 0) {
+    // no coincidencias -> mostrar botón para crear nuevo
+    sugerencias.innerHTML = '<li>No se encontraron libros</li>';
+    btnShowNew.style.display = 'inline-block';
+    return;
+  }
 
-    // 1. Insertar en Items
-    const { data: nuevoItem, error } = await supabase
-      .from("Items")
-      .insert([{ titulo }])
-      .select("id")
-      .single();
+// hay coincidencias -> ocultar crear nuevo
+  btnShowNew.style.display = 'none';
 
-    if (error) {
-      alert("Error al crear libro: " + error.message);
-      return;
-    }
+ // crear la lista de sugerencias (clic SOLO rellena el input)
+  items.forEach(it => {
+    const li = document.createElement('li');
+    li.textContent = it.titulo;
+    li.style.cursor = 'pointer';
+    li.addEventListener('click', () => {
+      buscarInput.value = it.titulo;
+      buscarInput.dataset.id = it.id;
+      selectedItemId = it.id;
+      sugerencias.innerHTML = '';
+      btnAddSelected.disabled = false;
+    });
+    sugerencias.appendChild(li);
+  });
+}, 250);
 
-    // 2. Insertar en user_items con categoría seleccionada
-    await agregarLibroUsuario(nuevoItem.id, categoriaId);
+// enlazar input
+if (buscarInput) buscarInput.addEventListener('input', buscarYMostrar);
 
-    // Reset
-    document.getElementById("nuevo-titulo").value = "";
-    document.getElementById("nuevo-autor").value = "";
-    nuevoForm.style.display = "none";
+// PREVENIR que Enter haga submit si esto está dentro de un form
+if (buscarInput) {
+  buscarInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') e.preventDefault();
   });
 }
 
+
+// ---- Añadir libro seleccionado (botón explícito) ----
+btnAddSelected.addEventListener('click', async () => {
+  if (!currentUser) return alert('No autenticado.');
+  const idItem = selectedItemId || buscarInput.dataset.id;
+  if (!idItem) return alert('Seleccione primero un libro de las sugerencias.');
+
+  const categoriaId = categoriaSelect.value;
+  if (!categoriaId) return alert('Seleccione una categoría.');
+
+  const precio = precioInput.value ? Number(precioInput.value) : null;
+
+  // Insert en user_items con categoría y precio (si tu tabla tiene campo precio)
+  const { error } = await supabase
+    .from('user_items')
+    .insert([{
+      id_user: currentUser.id,
+      id_item: idItem,
+      id_categoria: categoriaId,
+      precio: precio // si tu columna existe; si no, quítalo
+    }]);
+
+  if (error) {
+    console.error('Error al añadir libro:', error);
+    alert('Error al añadir libro: ' + error.message);
+    return;
+  }
+
+  // éxito: recargar lista de usuario
+  alert('Libro añadido correctamente.');
+  buscarInput.value = '';
+  buscarInput.removeAttribute('data-id');
+  selectedItemId = null;
+  btnAddSelected.disabled = true;
+  precioInput.value = '';
+  await loadUserBooks(currentUser.id); // asumiendo que esa función existe
+});
+
+// ---- Mostrar form para nuevo libro (cuando no hay coincidencias) ----
+
+btnShowNew.addEventListener('click', () => {
+  formNuevo.style.display = 'block';
+  // preseleccionar categoría en el form según la que esté elegida arriba (si quieres)
+  nuevaCategoriaSelect.value = categoriaSelect.value || '';
+});
+
+
+// ---- Guardar nuevo libro y añadirlo al user_items ----
+
+guardarNuevoBtn.addEventListener('click', async () => {
+  if (!currentUser) return alert('No autenticado.');
+  const titulo = document.getElementById('nuevo-titulo').value.trim();
+  const autor = document.getElementById('nuevo-autor').value.trim();
+  const categoriaId = nuevaCategoriaSelect.value;
+  const precioNuevo = document.getElementById('nuevo-precio').value ? Number(document.getElementById('nuevo-precio').value) : null;
+
+  if (!titulo) return alert('El título es obligatorio.');
+  if (!categoriaId) return alert('Seleccione una categoría.');
+
+  // 1) Insert en Items
+  const { data: inserted, error: errInsert } = await supabase
+    .from('Items')
+    .insert([{ titulo, id_autor: null }]) // completa los campos que necesites
+    .select('id')
+    .single();
+
+  if (errInsert) {
+    console.error('Error creando Item:', errInsert);
+    return alert('Error creando Item: ' + errInsert.message);
+  }
+
+  const nuevoId = inserted.id;
+
+  // 2) Insert en user_items con la categoría y precio
+  const { error: errUserItem } = await supabase
+    .from('user_items')
+    .insert([{
+      id_user: currentUser.id,
+      id_item: nuevoId,
+      id_categoria: categoriaId,
+      precio: precioNuevo
+    }]);
+
+  if (errUserItem) {
+    console.error('Error al añadir nuevo user_item:', errUserItem);
+    return alert('Error al añadir libro al usuario: ' + errUserItem.message);
+  }
+
+  // éxito
+  alert('Nuevo libro creado y añadido a tu biblioteca.');
+  formNuevo.style.display = 'none';
+  document.getElementById('nuevo-titulo').value = '';
+  document.getElementById('nuevo-autor').value = '';
+  document.getElementById('nuevo-precio').value = '';
+  await loadUserBooks(currentUser.id);
+});
+
+// Cancelar nuevo libro
+cancelarNuevoBtn.addEventListener('click', () => {
+  formNuevo.style.display = 'none';
+});
 
