@@ -204,8 +204,6 @@ if (delBtn) {
 }
 
 // ==================== AUTOCOMPLETAR ====================
-const buscarInput = document.getElementById("buscar-libro");
-const sugerencias = document.getElementById("sugerencias");
 
 if (buscarInput) {
   buscarInput.addEventListener("input", async () => {
