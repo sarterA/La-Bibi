@@ -360,7 +360,7 @@ btnAddSelected.addEventListener('click', async () => {
       id_user: currentUser.id,
       id_item: idItem,
       id_categoria: categoriaId,
-      Precio: precio // si tu columna existe; si no, quítalo
+      Precio: precio, 
       id_puntuacion: puntuacionId
     }]);
 
@@ -422,7 +422,7 @@ guardarNuevoBtn.addEventListener('click', async () => {
       id_user: currentUser.id,
       id_item: nuevoId,
       id_categoria: categoriaId,
-      Precio: precioNuevo
+      Precio: precioNuevo,
       id_puntuacion: puntuacionId
     }]);
 
