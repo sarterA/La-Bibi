@@ -348,8 +348,10 @@ btnAddSelected.addEventListener('click', async () => {
 
   const categoriaId = categoriaSelect.value;
   if (!categoriaId) return alert('Seleccione una categoría.');
-
   const precio = precioInput.value ? Number(precioInput.value) : null;
+  const puntuacionId = (labelPuntuacion.style.display !== 'none' && puntuacionSelect.value)
+  ? puntuacionSelect.value
+  : null;
 
   // Insert en user_items con categoría y precio (si tu tabla tiene campo precio)
   const { error } = await supabase
@@ -412,10 +414,6 @@ guardarNuevoBtn.addEventListener('click', async () => {
   }
 
   const nuevoId = inserted.id;
-
-const puntuacionId = (labelPuntuacion.style.display !== 'none' && puntuacionSelect.value)
-  ? puntuacionSelect.value
-  : null;
 
   // 2) Insert en user_items con la categoría y precio
   const { error: errUserItem } = await supabase
