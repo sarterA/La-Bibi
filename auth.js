@@ -29,26 +29,6 @@ const labelPuntuacion = document.getElementById("label-puntuacion");
 let currentUser = null;
 let selectedItemId = null;
 
-//==================== LOGIN ====================
-const loginForm = document.getElementById("login-form");
-if (loginForm) {
-  loginForm.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const email = document.getElementById("email").value;
-    const password = document.getElementById("password").value;
-
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-
-    if (error) {
-      document.getElementById("login-error").innerText = error.message;
-    } else {
-       window.location.href = "perfil.html";
-    }
-  });
-}
 
 //==================== PERFIL ====================
 if (window.location.pathname.includes("perfil.html")) {
