@@ -247,10 +247,6 @@ if (autorExistente) {
     document.getElementById("nuevo-puntuacion").value = "";
     document.getElementById("nueva-categoria").value = "";
 
-nuevoForm.style.display = "none";
-  });
-}
-
     // Reset
     document.getElementById("nuevo-titulo").value = "";
     document.getElementById("nuevo-autor").value = "";
