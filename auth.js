@@ -12,7 +12,7 @@ function debounce(fn, delay=300){
   }
 }
 
-// Variables DOM
+// Variables
 const buscarInput = document.getElementById("buscar-libro");
 const sugerencias = document.getElementById("sugerencias");
 const btnAddSelected = document.getElementById("btn-add-selected");
@@ -25,6 +25,8 @@ const guardarNuevoBtn = document.getElementById("guardar-nuevo-btn");
 const cancelarNuevoBtn = document.getElementById("cancelar-nuevo-btn");
 const puntuacionSelect = document.getElementById("puntuacion-select");
 const labelPuntuacion = document.getElementById("label-puntuacion");
+const selectCategoria = document.getElementById("categoria");
+const contenedorPuntuacion = document.getElementById("contenedor-puntuacion");
 
 let currentUser = null;
 let selectedItemId = null;
@@ -303,7 +305,7 @@ if (error) {
 
 async function cargarCategorias(){
   const { data: categorias, error } = await supabase
-    .from('Categoria')   // usa el nombre exacto de tu tabla
+    .from('Categoria')   
     .select('id, tipo');
 
   if (error) {
@@ -324,7 +326,6 @@ categorias.forEach(c => {
     nuevaCategoriaSelect.appendChild(o2);
   });
 }
-
 
 // Llamar al cargar perfil
 if (document.body.contains(buscarInput)) {
@@ -517,7 +518,47 @@ async function cargarPuntuaciones() {
     puntuacionSelect.appendChild(o);
   });
 }
+// Función para mostrar u ocultar la puntuación según la categoría elegida
+async function manejarCambioCategoria() {
+  if (!selectCategoria) return;
 
+  const categoriaSeleccionada = selectCategoria.options[selectCategoria.selectedIndex].text.toLowerCase();
+
+  if (categoriaSeleccionada === "leído") {
+    // Mostrar el campo de puntuación
+    contenedorPuntuacion.style.display = "block";
+
+    // Si aún no hay opciones cargadas, las traemos de Supabase
+    if (!contenedorPuntuacion.dataset.loaded) {
+      const { data: puntuaciones, error } = await supabase.from("Puntuacion").select("*");
+      if (error) {
+        console.error("Error cargando puntuaciones:", error);
+        return;
+      }
+
+      const selectPuntuacion = document.getElementById("puntuacion");
+      selectPuntuacion.innerHTML = "";
+      puntuaciones.forEach(p => {
+        const option = document.createElement("option");
+        option.value = p.id;
+        option.textContent = p.nota;
+        selectPuntuacion.appendChild(option);
+      });
+      contenedorPuntuacion.dataset.loaded = "true";
+    }
+  } else {
+    // Ocultar el campo de puntuación si la categoría no es 'leído'
+    contenedorPuntuacion.style.display = "none";
+  }
+}
+
+// Detectar cambios en la categoría
+if (selectCategoria) {
+  selectCategoria.addEventListener("change", manejarCambioCategoria);
+}
+
+
+// ==============viejo============================================ 
 // Mostrar u ocultar puntuación según categoría
 categoriaSelect.addEventListener('change', () => {
   const selectedText = categoriaSelect.options[categoriaSelect.selectedIndex]?.text;
