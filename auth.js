@@ -449,7 +449,7 @@ cancelarNuevoBtn.addEventListener('click', () => {
 //=================== Cargar puntuaciones==============================
 async function cargarPuntuaciones() {
   const { data: puntuaciones, error } = await supabase
-    .from('Puntuacion')
+    .from('Puntuación')
     .select('id, nota');
 
   if (error) {
