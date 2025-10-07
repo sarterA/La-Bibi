@@ -150,30 +150,106 @@ if (nuevoBtn) {
 }
 
 const guardarBtn = document.getElementById("guardar-nuevo-btn");
+
 if (guardarBtn) {
   guardarBtn.addEventListener("click", async () => {
     const titulo = document.getElementById("nuevo-titulo").value.trim();
-    const autor = document.getElementById("nuevo-autor").value.trim();
+    const autorNombre = document.getElementById("nuevo-autor").value.trim();
+    const categoriaId = document.getElementById("nueva-categoria").value;
+    const precio = document.getElementById("nuevo-precio")?.value || null;
+    const puntuacionId = document.getElementById("nueva-puntuacion")?.value || null;
 
     if (!titulo) {
       alert("El título es obligatorio.");
       return;
     }
 
-    // 1. Insertar en Items
-    const { data: nuevoItem, error } = await supabase
-      .from("Items")
-      .insert([{ titulo }])
-      .select("id")
-      .single();
+    let autorId = null;
 
-    if (error) {
-      alert("Error al crear libro: " + error.message);
+// 1. Si el autor fue especificado, buscarlo o crearlo
+    if (autorNombre) {
+      // Buscar autor existente
+      const { data: autorExistente, error: autorError } = await supabase
+        .from("Autor")
+        .select("id")
+        .ilike("nombre", autorNombre)
+        .single();
+
+      if (autorError && autorError.code !== "PGRST116") {
+        console.error("Error buscando autor:", autorError);
+        alert("Error buscando autor");
+        return;
+      }
+if (autorExistente) {
+        autorId = autorExistente.id;
+      } else {
+        // Crear autor si no existe
+        const { data: nuevoAutor, error: crearAutorError } = await supabase
+          .from("Autor")
+          .insert([{ nombre: autorNombre }])
+          .select("id")
+          .single();
+
+        if (crearAutorError) {
+          console.error("Error creando autor:", crearAutorError);
+          alert("Error creando autor");
+          return;
+        }
+
+        autorId = nuevoAutor.id;
+      }
+    } else {
+      alert("Debes escribir un autor o configurar un valor por defecto.");
       return;
     }
 
+    // 1. Insertar en Items
+    const { data: nuevoItem, error: itemError } = await supabase
+      .from("Items")
+      .insert([{
+          titulo,
+          id_autor: autorId,
+        },
+      ])
+      .select("id")
+      .single();
+
+    if (itemError) {
+      console.error("Error creando Item:", itemError);
+      alert("Error creando Item: " + itemError.message);
+      return;
+    }
+
+    const idItem = nuevoItem.id;
+
     // 2. Insertar en user_items del usuario actual
-    await agregarLibroUsuario(nuevoItem.id);
+    
+ const { error: userItemError } = await supabase.from("user_items").insert([
+      {
+        id_user: currentUser.id,
+        id_item: idItem,
+        id_categoria: categoriaId,
+        precio: precio,
+        id_puntuacion: puntuacionId || null,
+      },
+    ]);
+
+    if (userItemError) {
+      console.error("Error añadiendo libro al usuario:", userItemError);
+      alert("Error añadiendo libro: " + userItemError.message);
+      return;
+    }
+
+    alert("✅ Libro agregado correctamente a la biblioteca.");
+    document.getElementById("nuevo-titulo").value = "";
+    document.getElementById("nuevo-autor").value = "";
+    document.getElementById("nuevo-precio").value = "";
+    document.getElementById("nuevo-puntuacion").value = "";
+    document.getElementById("nueva-categoria").value = "";
+
+nuevoForm.style.display = "none";
+  });
+}
 
     // Reset
     document.getElementById("nuevo-titulo").value = "";
