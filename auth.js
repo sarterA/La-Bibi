@@ -148,7 +148,6 @@ if (guardarBtn) {
 
     let autorId = null;
 
-// 1. Si el autor fue especificado, buscarlo o crearlo
     if (autorNombre) {
       // Buscar autor existente
       const { data: autorExistente, error: autorError } = await supabase
@@ -394,6 +393,7 @@ if (buscarInput) {
 
 
 // ---- Añadir libro seleccionado (botón explícito) ----
+
 btnAddSelected.addEventListener('click', async () => {
   if (!currentUser) return alert('No autenticado.');
   const idItem = selectedItemId || buscarInput.dataset.id;
@@ -407,6 +407,7 @@ btnAddSelected.addEventListener('click', async () => {
   : null;
 
   // Insert en user_items con categoría y precio (si tu tabla tiene campo precio)
+
   const { error } = await supabase
     .from('user_items')
     .insert([{
@@ -555,25 +556,5 @@ async function manejarCambioCategoria() {
 // Detectar cambios en la categoría
 if (selectCategoria) {
   selectCategoria.addEventListener("change", manejarCambioCategoria);
-}
-
-
-// ==============viejo============================================ 
-// Mostrar u ocultar puntuación según categoría
-categoriaSelect.addEventListener('change', () => {
-  const selectedText = categoriaSelect.options[categoriaSelect.selectedIndex]?.text;
-  if (selectedText && selectedText.toLowerCase() === "leído") {
-    labelPuntuacion.style.display = 'inline';
-    puntuacionSelect.style.display = 'inline';
-  } else {
-    labelPuntuacion.style.display = 'none';
-    puntuacionSelect.style.display = 'none';
-    puntuacionSelect.value = ""; // limpiar selección
-  }
-});
-
-// Llamamos al cargar la página
-if (document.body.contains(puntuacionSelect)) {
-  cargarPuntuaciones();
 }
 
